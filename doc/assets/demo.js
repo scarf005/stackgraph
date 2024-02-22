@@ -3,10 +3,17 @@
 /// <reference lib="deno.window" />
 /// <reference lib="dom" />
 
-import ForceGraph from "https://esm.sh/force-graph@1.43.4"
+// import ForceGraph from "https://esm.sh/force-graph@1.43.4"
+import { html } from "https://esm.sh/htm@3.1.1/react?dev"
+import ForceGraph2D from "https://esm.sh/react-force-graph-2d@1.25.4"
+import { createRoot } from "https://esm.sh/react-dom@18.2.0/client?dev"
+import {
+	StrictMode,
+	useEffect,
+	useRef,
+	useState,
+} from "https://esm.sh/react@18.2.0?dev"
 
-// import ForceGraph2D from "https://esm.sh/react-force-graph-2d@1.25.4"
-// import ReactDom from "https://esm.sh/react-dom@17"
 //   <script src="//unpkg.com/react/umd/react.production.min.js"></script>
 //   <script src="//unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
 //   <script src="//unpkg.com/@babel/standalone"></script>
@@ -15,6 +22,7 @@ import ForceGraph from "https://esm.sh/force-graph@1.43.4"
 
 const graphDom = document.querySelector("div#graph")
 if (!graphDom) throw new Error("graph dom not found")
+const root = createRoot(graphDom)
 
 const data = await fetch("./assets/data.json").then((res) => res.json())
 const imports = Object.fromEntries(
@@ -31,184 +39,229 @@ let hoveredNode
 const ARROW_WH_RATIO = 1.6
 const ARROW_VLEN_RATIO = 0.2
 
-const graph = ForceGraph()(graphDom)
-	.width(graphDom.clientWidth)
-	.height(graphDom.clientHeight)
-	.backgroundColor("#f7fafc")
-	.graphData(data)
-	.nodeAutoColorBy("path")
-	.linkAutoColorBy("color")
-	.nodeLabel("url")
-	.linkDirectionalArrowLength(3)
-	.linkWidth(0.5)
-	.nodeCanvasObject((node, ctx, globalScale) => {
-		ctx.globalAlpha = hoveredNode
-			? ((hoveredNode === node || imports[hoveredNode.id]?.includes(node))
-				? 1
-				: 0.1)
-			: 1
+const Graph = () => {
+	const fgRef = useRef()
 
-		const label = /**@type{string}*/ (node.name)
-		const fontSize = (node.type === "import" ? 20 : 16) / globalScale
-		ctx.font = `${fontSize}px Sans-Serif`
-		const textWidth = ctx.measureText(label).width
+	// ForceGraph()(graphDom)
+	// 	.backgroundColor("#f7fafc")
+	// 	.graphData(data)
+	// 	.nodeAutoColorBy("path")
+	// 	.linkAutoColorBy("color")
+	// 	.nodeLabel("url")
+	// 	.linkDirectionalArrowLength(3)
+	// 	.linkWidth(0.5)
+	// 	.nodeCanvasObject((node, ctx, globalScale) => {
+	// 		ctx.globalAlpha = hoveredNode
+	// 			? ((hoveredNode === node || imports[hoveredNode.id]?.includes(node))
+	// 				? 1
+	// 				: 0.1)
+	// 			: 1
 
-		/** @type {(n: number) => number} */
-		const scaleBg = (n) => n + fontSize * 0.2
+	// 		const label = /**@type{string}*/ (node.name)
+	// 		const fontSize = (node.type === "import" ? 20 : 16) / globalScale
+	// 		ctx.font = `${fontSize}px Sans-Serif`
+	// 		const textWidth = ctx.measureText(label).width
 
-		const bgWidth = scaleBg(textWidth)
-		const bgHeight = scaleBg(fontSize)
+	// 		/** @type {(n: number) => number} */
+	// 		const scaleBg = (n) => n + fontSize * 0.2
 
-		// @ts-ignore: node do has color but force-graph lacks generics to know it
-		ctx.fillStyle = node.color
+	// 		const bgWidth = scaleBg(textWidth)
+	// 		const bgHeight = scaleBg(fontSize)
 
-		if (node.type === "import") {
-			ctx.fillRect(
-				// @ts-ignore: node do has x and y but force-graph marks it optional
-				node.x - bgWidth / 2,
-				// @ts-ignore: node do has x and y but force-graph marks it optional
-				node.y - bgHeight / 2,
-				bgWidth,
-				bgHeight,
-			)
-		} else {
-			ctx.roundRect(
-				// @ts-ignore: node do has x and y but force-graph marks it optional
-				node.x - bgWidth / 2,
-				// @ts-ignore: node do has x and y but force-graph marks it optional
-				node.y - bgHeight / 2,
-				bgWidth,
-				bgHeight,
-				10,
-			)
-			ctx.fill()
-			ctx.beginPath()
-		}
+	// 		// @ts-ignore: node do has color but force-graph lacks generics to know it
+	// 		ctx.fillStyle = node.color
 
-		ctx.textAlign = "center"
-		ctx.textBaseline = "middle"
-		// @ts-ignore: node do has textColor but force-graph lacks generics to know it
-		ctx.fillStyle = node.textColor
-		// @ts-ignore: node do has x and y but force-graph marks it optional
-		ctx.fillText(label, node.x, node.y)
+	// 		if (node.type === "import") {
+	// 			ctx.fillRect(
+	// 				// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 				node.x - bgWidth / 2,
+	// 				// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 				node.y - bgHeight / 2,
+	// 				bgWidth,
+	// 				bgHeight,
+	// 			)
+	// 		} else {
+	// 			ctx.roundRect(
+	// 				// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 				node.x - bgWidth / 2,
+	// 				// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 				node.y - bgHeight / 2,
+	// 				bgWidth,
+	// 				bgHeight,
+	// 				10,
+	// 			)
+	// 			ctx.fill()
+	// 			ctx.beginPath()
+	// 		}
 
-		// @ts-ignore: to re-use in nodePointerAreaPaint
-		node.bgWidth = bgWidth
-		// @ts-ignore: to re-use in nodePointerAreaPaint
-		node.bgHeight = bgHeight
+	// 		ctx.textAlign = "center"
+	// 		ctx.textBaseline = "middle"
+	// 		// @ts-ignore: node do has textColor but force-graph lacks generics to know it
+	// 		ctx.fillStyle = node.textColor
+	// 		// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 		ctx.fillText(label, node.x, node.y)
 
-		// if (hoveredNode === node) {
-		{
-			ctx.save()
-			ctx.globalAlpha = (hoveredNode === node) ? 1 : 0.25
-			ctx.lineWidth = (hoveredNode === node) ? 3 : 1
-			const arrowLength = (hoveredNode === node) ? 24 : 6
-			const arrowRelPos = 0.5
-			const arrowColor = node.color // "rgba(241, 21, 21, 0.521)"
-			const arrowHalfWidth = arrowLength / ARROW_WH_RATIO / 2
+	// 		// @ts-ignore: to re-use in nodePointerAreaPaint
+	// 		node.bgWidth = bgWidth
+	// 		// @ts-ignore: to re-use in nodePointerAreaPaint
+	// 		node.bgHeight = bgHeight
 
-			imports[node.id]?.forEach((target) => {
-				// draws line
-				ctx.beginPath()
-				ctx.moveTo(
-					// @ts-ignore: node do has x and y but force-graph marks it optional
-					node.x,
-					// @ts-ignore: node do has x and y but force-graph marks it optional
-					node.y,
-				)
-				ctx.lineTo(
-					// @ts-ignore: node do has x and y but force-graph marks it optional
-					target.x,
-					// @ts-ignore: node do has x and y but force-graph marks it optional
-					target.y,
-				)
-				ctx.strokeStyle = arrowColor
-				ctx.stroke()
+	// 		// if (hoveredNode === node) {
+	// 		{
+	// 			ctx.save()
+	// 			ctx.globalAlpha = (hoveredNode === node) ? 1 : 0.25
+	// 			ctx.lineWidth = (hoveredNode === node) ? 3 : 1
+	// 			const arrowLength = (hoveredNode === node) ? 24 : 6
+	// 			const arrowRelPos = 0.5
+	// 			const arrowColor = node.color // "rgba(241, 21, 21, 0.521)"
+	// 			const arrowHalfWidth = arrowLength / ARROW_WH_RATIO / 2
 
-				// draws arrow
+	// 			imports[node.id]?.forEach((target) => {
+	// 				// draws line
+	// 				ctx.beginPath()
+	// 				ctx.moveTo(
+	// 					// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 					node.x,
+	// 					// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 					node.y,
+	// 				)
+	// 				ctx.lineTo(
+	// 					// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 					target.x,
+	// 					// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 					target.y,
+	// 				)
+	// 				ctx.strokeStyle = arrowColor
+	// 				ctx.stroke()
 
-				const start = node
-				const end = target
+	// 				// draws arrow
 
-				if (
-					!start || !end || !start.hasOwnProperty("x") ||
-					!end.hasOwnProperty("x")
-				) return // skip invalid link
+	// 				const start = node
+	// 				const end = target
 
-				// Construct bezier for curved lines
-				// const bzLine = link.__controlPoints &&
-				// 	new Bezier(start.x, start.y, ...link.__controlPoints, end.x, end.y)
+	// 				if (
+	// 					!start || !end || !start.hasOwnProperty("x") ||
+	// 					!end.hasOwnProperty("x")
+	// 				) return // skip invalid link
 
-				const getCoordsAlongLine =
-					// bzLine
-					// 	? (t) => bzLine.get(t) // get position along bezier line
-					// 	:
-					(t) => ({ // straight line: interpolate linearly
-						x: start.x + (end.x - start.x) * t || 0,
-						y: start.y + (end.y - start.y) * t || 0,
-					})
+	// 				// Construct bezier for curved lines
+	// 				// const bzLine = link.__controlPoints &&
+	// 				// 	new Bezier(start.x, start.y, ...link.__controlPoints, end.x, end.y)
 
-				const lineLen =
-					// bzLine
-					// 	? bzLine.length()
-					// 	:
-					Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2))
+	// 				const getCoordsAlongLine =
+	// 					// bzLine
+	// 					// 	? (t) => bzLine.get(t) // get position along bezier line
+	// 					// 	:
+	// 					(t) => ({ // straight line: interpolate linearly
+	// 						x: start.x + (end.x - start.x) * t || 0,
+	// 						y: start.y + (end.y - start.y) * t || 0,
+	// 					})
 
-				const posAlongLine = 1 + arrowLength +
-					(lineLen - 1 - 1 - arrowLength) * arrowRelPos
+	// 				const lineLen =
+	// 					// bzLine
+	// 					// 	? bzLine.length()
+	// 					// 	:
+	// 					Math.sqrt(
+	// 						Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2),
+	// 					)
 
-				const arrowHead = getCoordsAlongLine(posAlongLine / lineLen)
-				const arrowTail = getCoordsAlongLine(
-					(posAlongLine - arrowLength) / lineLen,
-				)
-				const arrowTailVertex = getCoordsAlongLine(
-					(posAlongLine - arrowLength * (1 - ARROW_VLEN_RATIO)) / lineLen,
-				)
+	// 				const posAlongLine = 1 + arrowLength +
+	// 					(lineLen - 1 - 1 - arrowLength) * arrowRelPos
 
-				const arrowTailAngle =
-					Math.atan2(arrowHead.y - arrowTail.y, arrowHead.x - arrowTail.x) -
-					Math.PI / 2
+	// 				const arrowHead = getCoordsAlongLine(posAlongLine / lineLen)
+	// 				const arrowTail = getCoordsAlongLine(
+	// 					(posAlongLine - arrowLength) / lineLen,
+	// 				)
+	// 				const arrowTailVertex = getCoordsAlongLine(
+	// 					(posAlongLine - arrowLength * (1 - ARROW_VLEN_RATIO)) / lineLen,
+	// 				)
 
-				ctx.beginPath()
+	// 				const arrowTailAngle =
+	// 					Math.atan2(arrowHead.y - arrowTail.y, arrowHead.x - arrowTail.x) -
+	// 					Math.PI / 2
 
-				ctx.moveTo(arrowHead.x, arrowHead.y)
-				ctx.lineTo(
-					arrowTail.x + arrowHalfWidth * Math.cos(arrowTailAngle),
-					arrowTail.y + arrowHalfWidth * Math.sin(arrowTailAngle),
-				)
-				ctx.lineTo(arrowTailVertex.x, arrowTailVertex.y)
-				ctx.lineTo(
-					arrowTail.x - arrowHalfWidth * Math.cos(arrowTailAngle),
-					arrowTail.y - arrowHalfWidth * Math.sin(arrowTailAngle),
-				)
+	// 				ctx.beginPath()
 
-				ctx.fillStyle = arrowColor
-				ctx.fill()
-			})
-			ctx.restore()
-		}
-	})
-	.nodePointerAreaPaint((node, color, ctx) => {
-		ctx.fillStyle = color
-		ctx.fillRect(
-			// @ts-ignore: node do has x and y but force-graph marks it optional
-			node.x - node.bgWidth / 2,
-			// @ts-ignore: node do has x and y but force-graph marks it optional
-			node.y - node.bgHeight / 2,
-			// @ts-ignore: using bgWidth
-			node.bgWidth,
-			// @ts-ignore: using bgHeight
-			node.bgHeight,
-		)
-	})
-	// @ts-ignore: node has url but force-graph lacks generics to know it
-	.onNodeClick((node) => globalThis.open(node.url))
-	.onNodeHover((node) => {
-		hoveredNode = node
-	})
-	.autoPauseRedraw(false)
+	// 				ctx.moveTo(arrowHead.x, arrowHead.y)
+	// 				ctx.lineTo(
+	// 					arrowTail.x + arrowHalfWidth * Math.cos(arrowTailAngle),
+	// 					arrowTail.y + arrowHalfWidth * Math.sin(arrowTailAngle),
+	// 				)
+	// 				ctx.lineTo(arrowTailVertex.x, arrowTailVertex.y)
+	// 				ctx.lineTo(
+	// 					arrowTail.x - arrowHalfWidth * Math.cos(arrowTailAngle),
+	// 					arrowTail.y - arrowHalfWidth * Math.sin(arrowTailAngle),
+	// 				)
 
-graph.d3Force("link")?.distance(90)
+	// 				ctx.fillStyle = arrowColor
+	// 				ctx.fill()
+	// 			})
+	// 			ctx.restore()
+	// 		}
+	// 	})
+	// 	.nodePointerAreaPaint((node, color, ctx) => {
+	// 		ctx.fillStyle = color
+	// 		ctx.fillRect(
+	// 			// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 			node.x - node.bgWidth / 2,
+	// 			// @ts-ignore: node do has x and y but force-graph marks it optional
+	// 			node.y - node.bgHeight / 2,
+	// 			// @ts-ignore: using bgWidth
+	// 			node.bgWidth,
+	// 			// @ts-ignore: using bgHeight
+	// 			node.bgHeight,
+	// 		)
+	// 	})
+	// 	// @ts-ignore: node has url but force-graph lacks generics to know it
+	// 	.onNodeClick((node) => globalThis.open(node.url))
+	// 	.onNodeHover((node) => {
+	// 		hoveredNode = node
+	// 	})
+	// 	.autoPauseRedraw(false)
+
+	return html`
+		<${ForceGraph2D}
+			ref=${fgRef}
+			graphData=${data}
+			<!-- onNodeClick={(node) => globalThis.open(node.url)} -->
+		/>
+	`
+}
+
+const Example = ({ init }) => {
+	const [count, setCount] = useState(init)
+
+	return html`
+        <section>
+            <h2>${count}</h2>
+            <button onClick=${() => setCount(count + 1)}>Increase</button>
+        </section>
+    `
+}
+
+const ExampleGraph = () => {
+	const ref = useRef()
+
+	useEffect(() => {
+		console.log(ref.current)
+	}, [ref])
+
+	return html`
+        <${ForceGraph2D} ref=${ref} />
+    `
+}
+
+console.log(html`
+    <!-- <${Graph} /> -->
+`)
+root.render(html`
+<${StrictMode}>
+    <${ExampleGraph}/>
+    <${Example} init=${10} />
+</${StrictMode}>
+`)
+
+// Graph.d3Force("link")?.distance(90)
 // graph.d3Force("link")?.strength(link => {
 //     console.log(link)
 //     return link.type === "import" ? 1 : 0

@@ -43,10 +43,40 @@ export default async (_: Lume.Data, { md }: Lume.Helpers) => /*html*/ `
                 margin: 0.2em 0
             }
         </style>
+
+        <script src="//unpkg.com/react/umd/react.production.min.js"></script>
+        <script src="//unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
+        <script src="//unpkg.com/@babel/standalone"></script>
+
+        <script src="//unpkg.com/react-force-graph-2d"></script>
+        <script>
+            function genRandomTree(N = 300, reverse = false) {
+                return {
+                    nodes: [...Array(N).keys()].map(i => ({ id: i })),
+                    links: [...Array(N).keys()]
+                    .filter(id => id)
+                    .map(id => ({
+                        [reverse ? 'target' : 'source']: id,
+                        [reverse ? 'source' : 'target']: Math.round(Math.random() * (id-1))
+                    }))
+                }
+            }
+        </script>
     </head>
 
     <body>
         ${md(header + await readme())}
-        <script type="module" src="./assets/demo.js"></script>
+
+        <script type="text/jsx">
+            const Graph = () => {
+                return <ForceGraph2D graphData={genRandomTree()}/>
+            }
+
+            ReactDOM.render(
+                <Graph />,
+                document.getElementById('graph')
+            )
+        </script>
+        <!-- <script type="module" src="./assets/demo.js"></script> -->
     </body>
 `
