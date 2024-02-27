@@ -3,7 +3,7 @@ import { parseVSCodeURI, VSCodeURI } from "./vscode_uri.ts"
 export type GithubURI =
 	`https://github.com/${string}/${string}/blob/${string}/${string}#L${string}-L${string}`
 
-type GithubURIOption = {
+export type GithubURIOption = {
 	owner: string
 	repo: string
 	commit: string
